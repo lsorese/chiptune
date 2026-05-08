@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# sp4 — wrapper for sonic_pi4 that injects port/token into spider.log
+# Sonic Pi 4.6 no longer writes "Ports:" to spider.log, which breaks sonic_pi4
+
+SPIDER_LINE=$(ps aux | grep 'spider-server.rb -u' | grep -v grep | head -1)
+if [[ -z "$SPIDER_LINE" ]]; then
+  echo "Error: Sonic Pi is not running" >&2
+  exit 1
+fi
+
+# First number after -u is the server_port; last arg is the auth token
+SERVER_PORT=$(echo "$SPIDER_LINE" | sed 's/.*-u[[:space:]]*//' | awk '{print $1}')
+TOKEN=$(echo "$SPIDER_LINE" | awk '{print $NF}')
+
+SPIDER_LOG="$HOME/.sonic-pi/log/spider.log"
+
+if ! grep -q "^Ports:" "$SPIDER_LOG" 2>/dev/null; then
+  echo "Ports: {:server_port=>$SERVER_PORT, :gui_port=>0, :scsynth_port=>0, :scsynth_send_port=>0, :osc_cues_port=>4560, :tau_port=>0, :listen_to_tau_port=>0}" >> "$SPIDER_LOG"
+fi
+if ! grep -q "^Token:" "$SPIDER_LOG" 2>/dev/null; then
+  echo "Token: $TOKEN" >> "$SPIDER_LOG"
+fi
+
+exec "$HOME/.gem/ruby/2.6.0/bin/sonic_pi4" "$@"
