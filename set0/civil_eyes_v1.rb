@@ -6,7 +6,7 @@
 # Structure: 16-beat intro → 8× 32-beat sections
 # SONG_END = 8
 #
-# run_file "/Users/logan/Projects/chiptune/civil_eyes.rb"
+# run_file "/Users/logan/Projects/chiptune/civil_eyes_v1.rb"
 
 use_bpm 167
 

@@ -6,7 +6,7 @@
 # Same energy as gun_fingers but in Bb minor (descending minor, same shape).
 # SONG_END = 8
 #
-# run_file "/Users/logan/Projects/chiptune/killer_oh.rb"
+# run_file "/Users/logan/Projects/chiptune/killer_oh_v1.rb"
 
 use_bpm 162
 

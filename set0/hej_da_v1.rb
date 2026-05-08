@@ -6,7 +6,7 @@
 # No melody, no arp stabs. Single pattern throughout (no sec distinction).
 # SONG_END = 4  (~55 seconds)
 #
-# run_file "/Users/logan/Projects/chiptune/hej_da.rb"
+# run_file "/Users/logan/Projects/chiptune/hej_da_v1.rb"
 
 use_bpm 144
 

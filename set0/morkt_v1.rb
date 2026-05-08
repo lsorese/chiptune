@@ -6,7 +6,7 @@
 # Open style — no synth melody, space for guitar/vocals on top.
 # SONG_END = 8
 #
-# run_file "/Users/logan/Projects/chiptune/morkt.rb"
+# run_file "/Users/logan/Projects/chiptune/morkt_v1.rb"
 
 use_bpm 108
 

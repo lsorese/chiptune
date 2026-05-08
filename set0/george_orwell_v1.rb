@@ -5,7 +5,7 @@
 # vi-IV-I-V feel from Eb major. Open style — no synth melody, space for guitar/vocals.
 # SONG_END = 8
 #
-# run_file "/Users/logan/Projects/chiptune/george_orwell.rb"
+# run_file "/Users/logan/Projects/chiptune/george_orwell_v1.rb"
 
 use_bpm 103
 
