@@ -1,0 +1,116 @@
+setlist:
+  - id: intro
+    title: INTRO
+    file: "0. intro.rb"
+    bpm: 60
+    color: "#00eeff"
+    autoplay: true
+    sections:
+      - intro
+
+  - id: fault
+    title: FAULT
+    file: "1. fault.rb"
+    bpm: 175
+    color: "#ff3333"
+    autoplay: false
+    sections:
+      - breakdown
+      - verse
+      - verse
+      - chorus
+      - chorus
+      - glitch breakdown
+      - final chorus
+      - breakdown
+
+  - id: edge
+    title: EDGE
+    file: "2. edge.rb"
+    bpm: 148
+    color: "#ff8833"
+    autoplay: true
+    sections:
+      - verse
+      - verse
+      - breakdown
+      - breakdown
+      - verse II
+      - verse II
+      - chorus
+      - chorus
+
+  - id: void
+    title: VOID
+    file: "3. void.rb"
+    bpm: 118
+    color: "#cc44ff"
+    autoplay: true
+    sections:
+      - verse I
+      - verse I
+      - verse II
+      - verse II
+      - chorus
+      - chorus
+      - outro
+      - outro
+
+  - id: disco
+    title: DISCO
+    file: "4. disco.rb"
+    bpm: 240
+    color: "#ffff00"
+    autoplay: true
+    sections:
+      - blast
+      - disco breakdown
+      - blast + glitch
+
+  - id: coil
+    title: COIL
+    file: "5. coil_v5.rb"
+    bpm: 160
+    color: "#33ff88"
+    autoplay: true
+    sections:
+      - verse
+      - verse
+      - chorus
+      - chorus
+      - breakdown
+      - breakdown
+      - verse reprise
+      - verse reprise
+
+  - id: wire
+    title: WIRE
+    file: "6. wire.rb"
+    bpm: 164
+    color: "#ff44cc"
+    autoplay: true
+    sections:
+      - verse
+      - verse
+      - break
+      - break
+      - verse II
+      - verse II
+      - meltdown
+      - meltdown
+
+  - id: final
+    title: FINAL
+    file: "7. final.rb"
+    bpm: 70
+    color: "#44aaff"
+    autoplay: false
+    sections:
+      - sparse verse
+      - sparse verse
+      - full verse
+      - full verse
+      - chorus
+      - chorus
+      - outro
+      - outro

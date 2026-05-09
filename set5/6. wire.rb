@@ -17,6 +17,7 @@ SONG_END = 8
 live_loop :conductor do
   t = tick
   stop if t > SONG_END
+  osc_send "localhost", 4559, "/sp/wire/section", t
   sleep t == 0 ? 16 : 32
 end
 

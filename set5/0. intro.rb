@@ -9,6 +9,8 @@
 
 use_bpm 60
 
+osc_send "localhost", 4559, "/sp/intro/section", 0
+
 with_fx :reverb, room: 0.3, mix: 0.12 do
 
   # ── 24 beats: bass + sustained stereo melody ────────────────────────────────

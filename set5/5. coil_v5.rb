@@ -20,6 +20,7 @@ GPERCS  = [
 live_loop :conductor do
   t = tick
   stop if t > SONG_END
+  osc_send "localhost", 4559, "/sp/coil/section", t
   sleep t == 0 ? 16 : 32
 end
 

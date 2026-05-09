@@ -19,8 +19,9 @@ run "0. intro.rb"  40
 run "1. fault.rb"  102
 run "2. edge.rb"   120
 run "3. void.rb"   148
-run "4. coil_v5.rb"   112
-run "5. wire.rb"   108
-run "6. final.rb"  285
+run "4. disco.rb"  32
+run "5. coil_v5.rb"   112
+run "6. wire.rb"   108
+run "7. final.rb"  285
 
 echo "Set complete — stop the recorder."
