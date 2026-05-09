@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# sp4 — Sonic Pi 4.6 CLI wrapper
+#
+# Usage:
+#   sp4 "<code>"            — run code in Sonic Pi
+#   sp4 stop                — stop all jobs
+#   sp4 start-recording     — begin internal recording
+#   sp4 stop-recording      — stop internal recording
+#   sp4 save-recording <path> — save recording to path
+
+SPIDER_LINE=$(ps aux | grep 'spider-server.rb -u' | grep -v grep | head -1)
+if [[ -z "$SPIDER_LINE" ]]; then
+  echo "Error: Sonic Pi is not running" >&2
+  exit 1
+fi
+
+SERVER_PORT=$(echo "$SPIDER_LINE" | sed 's/.*-u[[:space:]]*//' | awk '{print $1}')
+TOKEN=$(echo "$SPIDER_LINE" | awk '{print $NF}')
+
+SPIDER_LOG="$HOME/.sonic-pi/log/spider.log"
+if ! grep -q "^Ports:" "$SPIDER_LOG" 2>/dev/null; then
+  echo "Ports: {:server_port=>$SERVER_PORT, :gui_port=>0, :scsynth_port=>0, :scsynth_send_port=>0, :osc_cues_port=>4560, :tau_port=>0, :listen_to_tau_port=>0}" >> "$SPIDER_LOG"
+fi
+if ! grep -q "^Token:" "$SPIDER_LOG" 2>/dev/null; then
+  echo "Token: $TOKEN" >> "$SPIDER_LOG"
+fi
+
+# Send a raw OSC message via Ruby + osc-ruby gem
+osc_send() {
+  local path="$1"; shift
+  /Applications/Sonic\ Pi.app/Contents/Resources/app/server/native/ruby/bin/ruby \
+    -I "$HOME/.gem/ruby/2.6.0/gems/osc-ruby-1.1.5/lib" \
+    -r osc-ruby \
+    -e "
+      args = ARGV.map { |a| a =~ /^-?\d+$/ ? a.to_i : a }
+      c = OSC::Client.new('127.0.0.1', $SERVER_PORT)
+      c.send(OSC::Message.new('$path', *args))
+    " -- "$@"
+}
+
+case "$1" in
+  start-recording)
+    osc_send /start-recording "$TOKEN"
+    ;;
+  stop-recording)
+    osc_send /stop-recording "$TOKEN"
+    ;;
+  save-recording)
+    osc_send /save-recording "$TOKEN" "$2"
+    ;;
+  *)
+    exec "$HOME/.gem/ruby/2.6.0/bin/sonic_pi4" "$@"
+    ;;
+esac
