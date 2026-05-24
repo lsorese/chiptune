@@ -1,23 +1,12 @@
 use_bpm 185
 SONG_END = 22
 
-# Section map (each tick = 16 beats = ~5.2s at 185 BPM):
-#   0- 1  intro       10.4s  — silence
-#   2- 4  verse 1     15.6s  — closed hat, one crash-hit per tick
-#   5- 6  chorus      10.4s  — METAL hat, crash every measure, bass → A
-#   7-10  verse 2     20.8s  — closed hat, hit at end of each tick, bass → E
-#  11-17  outro       36.3s  — closed hat, no crash, bass → E drone
-#  18-20  blast       15.6s  — metal hat, d-beat, bass → E pulse
-#     21  ending       5.2s  — 2 blast measures then silence
-
-# — Sounds —
-
 define :kick do
-  sample :bd_fat, amp: 1.3, attack: 0, sustain: 0.1, release: 0.15
+  sample :bd_fat, amp: 1.4, attack: 0, sustain: 0.1, release: 0.15
 end
 
 define :snare do
-  sample :sn_dub, amp: 1.0
+  sample :sn_dub, amp: 1.1
 end
 
 define :hat do
@@ -25,21 +14,54 @@ define :hat do
 end
 
 define :hat_m do
-  sample :hat_metal, amp: 0.75
+  sample :hat_metal, amp: 0.8
 end
 
 define :crash do
-  sample :hat_cymbal, amp: 0.9, rate: 0.65
+  sample :hat_cymbal, amp: 1.0, rate: 0.6
 end
 
-# — Measures (each = 4 beats) —
-
-define :mhat do
-  8.times { hat; sleep 0.5 }
+define :hit do
+  sample :bd_fat, amp: 1.6, attack: 0, sustain: 0.1, release: 0.15
+  sample :sn_dub, amp: 1.4
+  crash
 end
 
-# Verse / outro: closed hat, kick 1+3, snare 2+4
-define :mfull do
+# Verse: 8th-note hats, then fill at end of line
+# Dum Dum Dum Dum (gap) Dum Dum Dum Dum
+define :m_verse do |first|
+  if first
+    hit; sleep 0.5
+  else
+    kick; sleep 0.5
+  end
+  # Beats 0.5-11.5: 8th-note hats
+  22.times { hat; sleep 0.5 }
+  # Beats 12.5-16: fill — 4 hits, 1-beat gap, 4 hits
+  hat; sleep 0.5
+  kick; snare; sleep 0.5
+  kick; snare; sleep 0.5
+  kick; snare; sleep 0.5
+  kick; snare; sleep 1.0
+  kick; snare; sleep 0.5
+  kick; snare; sleep 0.5
+  kick; snare; sleep 0.5
+end
+
+# Chorus: kick+snare on every beat, metal hats on every 8th
+define :m_chorus do
+  kick; snare; hat_m; sleep 0.5
+  hat_m;              sleep 0.5
+  kick; snare; hat_m; sleep 0.5
+  hat_m;              sleep 0.5
+  kick; snare; hat_m; sleep 0.5
+  hat_m;              sleep 0.5
+  kick; snare; hat_m; sleep 0.5
+  hat_m;              sleep 0.5
+end
+
+# Outro: kick 1+3, snare 2+4, hats on 8ths
+define :m_outro do
   kick; hat;  sleep 0.5
   hat;        sleep 0.5
   snare; hat; sleep 0.5
@@ -50,20 +72,8 @@ define :mfull do
   hat;        sleep 0.5
 end
 
-# Chorus: metal hat — open, heavy, distinct from verse
-define :mchorus do
-  kick; hat_m;  sleep 0.5
-  hat_m;        sleep 0.5
-  snare; hat_m; sleep 0.5
-  hat_m;        sleep 0.5
-  kick; hat_m;  sleep 0.5
-  hat_m;        sleep 0.5
-  snare; hat_m; sleep 0.5
-  hat_m;        sleep 0.5
-end
-
-# Blast: d-beat, snare every 8th note, metal hat
-define :mblast do
+# Blast: kick+snare alternating on every 8th, metal hats
+define :m_blast do
   kick;  hat_m; sleep 0.5
   snare; hat_m; sleep 0.5
   kick;  hat_m; sleep 0.5
@@ -73,8 +83,6 @@ define :mblast do
   kick;  hat_m; sleep 0.5
   snare; hat_m; sleep 0.5
 end
-
-# — Loops —
 
 live_loop :conductor do
   t = tick
@@ -88,96 +96,42 @@ live_loop :drums, sync: :conductor do
 
   case t
   when 0, 1
-    # Intro: silence
     sleep 16
 
-  when 2, 3, 4
-    # Verse 1: crash on measure 1, hat holds through measures 2-4
-    crash; mfull
-    3.times { mhat }
+  when 2
+    m_verse true
+
+  when 3, 4
+    m_verse false
 
   when 5, 6
-    # Chorus: crash every measure, open metal hat
-    4.times { crash; mchorus }
+    crash
+    4.times { m_chorus }
 
-  when 7, 8, 9
-    # Verse 2: hat leads, crash-hit on measure 3, hat trails
-    2.times { mhat }
-    crash; mfull
-    mhat
+  when 7
+    m_verse true
 
-  when 10
-    # Verse 2 end: hat, pickup, big crash into outro
-    2.times { mhat }
-    mfull
-    crash; mfull
+  when 8, 9, 10
+    m_verse false
 
   when 11
-    # Outro entry: one big crash
     crash
-    4.times { mfull }
+    2.times { m_outro }
+    2.times { m_blast }
 
-  when 12..17
-    # Outro: driving closed-hat beat
-    4.times { mfull }
+  when 12, 13, 14
+    4.times { m_blast }
 
-  when 18..20
-    # Blast: d-beat escalation
-    4.times { mblast }
+  when 15, 16, 17
+    crash
+    4.times { m_blast }
 
-  when 21
-    # Ending: two blast measures then silence
-    crash; mblast; mblast
-    sleep 8
-  end
-end
-
-live_loop :bass, sync: :conductor do
-  t = tick
-  stop if t >= SONG_END
-
-  use_synth :chipbass
-
-  case t
-  when 0, 1
-    sleep 16
-
-  when 2, 3, 4
-    # Verse 1: staccato E on the downbeat hit
-    play :e2, amp: 0.7, sustain: 0.4, release: 0.2
-    sleep 16
-
-  when 5, 6
-    # Chorus: A root — the "other stuff"
-    play :a2, amp: 0.8, sustain: 14, release: 2
-    sleep 16
-
-  when 7, 8, 9
-    # Verse 2: E on the hit (measure 3 of each tick)
-    sleep 8
-    play :e2, amp: 0.7, sustain: 0.4, release: 0.2
-    sleep 8
-
-  when 10
-    # Verse 2 end: E on the big hit (measure 4)
-    sleep 12
-    play :e2, amp: 0.9, sustain: 0.4, release: 0.2
-    sleep 4
-
-  when 11..17
-    # Outro: sustained E drone
-    play :e2, amp: 0.65, sustain: 14, release: 2
-    sleep 16
-
-  when 18..20
-    # Blast: driving E pulse every beat
-    4.times do
-      play :e2, amp: 0.85, sustain: 0.6, release: 0.2
-      sleep 4
-    end
+  when 18, 19, 20
+    crash
+    4.times { m_blast }
 
   when 21
-    play :e2, amp: 0.8, sustain: 6, release: 2
-    sleep 16
+    crash; m_blast; m_blast
+    sleep 8
   end
 end
