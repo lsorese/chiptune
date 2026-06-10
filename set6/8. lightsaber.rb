@@ -1,5 +1,7 @@
 use_bpm 185
-SONG_END = 22
+SONG_END = 23
+
+# Option D: structural change at 91.6s marked mid-t=17 (outro → blast)
 
 define :kick do
   sample :bd_fat, amp: 1.4, attack: 0, sustain: 0.1, release: 0.15
@@ -27,17 +29,13 @@ define :hit do
   crash
 end
 
-# Verse: 8th-note hats, then fill at end of line
-# Dum Dum Dum Dum (gap) Dum Dum Dum Dum
 define :m_verse do |first|
   if first
     hit; sleep 0.5
   else
     kick; sleep 0.5
   end
-  # Beats 0.5-11.5: 8th-note hats
   22.times { hat; sleep 0.5 }
-  # Beats 12.5-16: fill — 4 hits, 1-beat gap, 4 hits
   hat; sleep 0.5
   kick; snare; sleep 0.5
   kick; snare; sleep 0.5
@@ -48,7 +46,6 @@ define :m_verse do |first|
   kick; snare; sleep 0.5
 end
 
-# Chorus: kick+snare on every beat, metal hats on every 8th
 define :m_chorus do
   kick; snare; hat_m; sleep 0.5
   hat_m;              sleep 0.5
@@ -60,7 +57,6 @@ define :m_chorus do
   hat_m;              sleep 0.5
 end
 
-# Outro: kick 1+3, snare 2+4, hats on 8ths
 define :m_outro do
   kick; hat;  sleep 0.5
   hat;        sleep 0.5
@@ -72,7 +68,6 @@ define :m_outro do
   hat;        sleep 0.5
 end
 
-# Blast: kick+snare alternating on every 8th, metal hats
 define :m_blast do
   kick;  hat_m; sleep 0.5
   snare; hat_m; sleep 0.5
@@ -101,33 +96,37 @@ live_loop :drums, sync: :conductor do
   when 2
     m_verse true
 
-  when 3, 4
+  when 3, 4, 5
     m_verse false
 
-  when 5, 6
+  when 6, 7
     crash
     4.times { m_chorus }
 
-  when 7
+  when 8
     m_verse true
 
-  when 8, 9, 10
+  when 9, 10, 11, 12
     m_verse false
 
-  when 11
+  when 13
     crash
+    4.times { m_outro }
+
+  when 14, 15, 16
+    4.times { m_outro }
+
+  when 17
+    # structural change at ~91.6s = beat ~8 of this tick
     2.times { m_outro }
+    crash
     2.times { m_blast }
 
-  when 12, 13, 14
-    4.times { m_blast }
-
-  when 15, 16, 17
+  when 18, 19
     crash
     4.times { m_blast }
 
-  when 18, 19, 20
-    crash
+  when 20
     4.times { m_blast }
 
   when 21
