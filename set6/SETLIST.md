@@ -14,7 +14,7 @@
 | 4 | **disco** | 240 | B | B5 – E5 – A5 | ~1.5 min |
 | 5 | **polka** | 185 | D | D – A – G – D | ~2 min |
 | — | *Pressure Drop* | 200 | Bb | drone — Bb | ~2 min |
-| 6 | **coil** | 160 | F#m | F#m – D – B – C# | ~2.5 min |
+| 6 | **coil** | 160 | F#m | F#m7 – Dmaj7 – Bm7 – C#7 *(acid techno)* | ~2.5 min |
 | — | *Broken Machine* | 162 | F# | drone — F# | ~2.8 min |
 | 7 | **wire** | 164 | G#m | G#m – E – B – F# | ~2.5 min |
 | 8 | **lightsaber** *(cover)* | 185 | — | Lightsabre Cocksucking Blues | ~2 min |

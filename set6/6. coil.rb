@@ -1,27 +1,20 @@
-# coil.rb — set6: +20% length via SONG_END 8→10 (verse reprise cools down after glitch escalation)
-# 160 BPM  |  F# minor  |  F#m – D – B – C#
+# coil.rb — set6: rebuilt as acid techno to differentiate from wire
+# 160 BPM  |  F# minor  |  F#m7 – Dmaj7 – Bm7 – C#7
 #
-# sec 0,2 — verse:      arp w/ light ring mod + bitcrusher, 4-on-floor kick, ska hats
-# sec 1   — chorus:     arp + stabs, 16th hats, glitch accent every 4 beats
-# sec 2   — breakdown:  slow bass, crash, noise drone, chaotic glitch
-# sec 3   — verse reprise: escalating glitch (t=6 sparse, t=7 dense)
-# (t=8,9 wrap to sec 0 — calm verse coda after the glitch climax)
+# sec 0 — groove:   squelchy 303 bass line, 4-on-floor kick, off-beat open hat
+# sec 1 — stabs:    + dub chord stabs on the offbeat, clap on 2 & 4
+# sec 2 — break:    303 + kick drop out, pad swells, filter riser texture
+# sec 3 — peak:     303 cutoff cranked, stabs, clap, driving 16th hats
+# (t=8,9 wrap to sec 0/1 — groove + stabs cool-down)
 #
-# run_file "/Users/logan/Projects/chiptune/set6/5. coil.rb"
+# run_file "/Users/logan/Projects/chiptune/set6/6. coil.rb"
 
 use_bpm 160
 
 SONG_END = 10
 
-GLITCH  = "/Users/logan/Projects/chiptune/samples/drums/one-shots/glitchy/glitch_perc1.flac"
-BUZZ    = "/Users/logan/Projects/chiptune/samples/ambient/ambi_soft_buzz.flac"
 NOISE   = "/Users/logan/Projects/chiptune/samples/noise loops/rand-stream-pink.wav"
-GPERCS  = [
-  "/Users/logan/Projects/chiptune/samples/drums/one-shots/glitchy/glitch_perc2.flac",
-  "/Users/logan/Projects/chiptune/samples/drums/one-shots/glitchy/glitch_perc3.flac",
-  "/Users/logan/Projects/chiptune/samples/drums/one-shots/glitchy/glitch_perc4.flac",
-  "/Users/logan/Projects/chiptune/samples/drums/one-shots/glitchy/glitch_perc5.flac",
-]
+ASWELL  = "/Users/logan/Projects/chiptune/samples/ambient/ambi_soft_buzz.flac"
 
 # ── Conductor ─────────────────────────────────────────────────────────────────
 live_loop :conductor do
@@ -31,55 +24,83 @@ live_loop :conductor do
   sleep t == 0 ? 16 : 32
 end
 
-# ── Ascending arp (verse + chorus + verse reprise) ─────────────────────────────
-ARP_UP = [
-  [:fs4, :a4,  :cs5, :fs5, :cs5, :a4,  :fs4, :cs4],
-  [:d4,  :fs4, :a4,  :d5,  :a4,  :fs4, :d4,  :a3 ],
-  [:b3,  :ds4, :fs4, :b4,  :fs4, :ds4, :b3,  :fs3],
-  [:cs4, :f4,  :gs4, :cs5, :gs4, :f4,  :cs4, :gs3],
+# ── Acid bass (TB-303-style) ──────────────────────────────────────────────────
+# 16-step pattern per chord (4 beats), 4 chords = 16 beats, x2 = 32 beats.
+# n=root, h=root+12, f=fifth, rest=:r. Rough Roland 303 vibe.
+ACID_PATTERN = [
+  :n,  :n,  :h,  :n,  :r,  :n,  :h,  :n,
+  :f,  :n,  :h,  :n,  :n,  :h,  :n,  :f
 ]
 
-live_loop :arp, sync: :conductor do
-  t = tick
-  stop if t >= SONG_END
-  sec = (t / 2) % 4
-  if [0, 1, 3].include?(sec)
-    with_fx :bitcrusher, bits: 7, sample_rate: 0.45 do
-      use_synth :pulse
-      use_synth_defaults attack: 0, sustain: 0.1, release: 0.08,
-                         amp: 0.4, pulse_width: 0.18, cutoff: 88
-      2.times do
-        ARP_UP.each do |chord|
-          chord.each { |n| play n; sleep 0.5 }
-        end
-      end
+ACID_ROOTS  = [:fs2, :d2,  :b1,  :cs2]
+ACID_FIFTHS = [:cs3, :a2,  :fs2, :gs2]
+
+def play_acid(root, fifth, cutoff_v, res_v, amp_v)
+  ACID_PATTERN.each do |step|
+    case step
+    when :n then play root,       cutoff: cutoff_v, res: res_v, amp: amp_v
+    when :h then play root + 12,  cutoff: cutoff_v, res: res_v, amp: amp_v * 1.1
+    when :f then play fifth,      cutoff: cutoff_v, res: res_v, amp: amp_v
     end
-  else
-    sleep 32
+    sleep 0.25
   end
 end
 
-# ── Descending stabs (chorus only) ────────────────────────────────────────────
-STABS_DOWN = [
-  [:fs5, :cs5, :a4,  :fs4, :cs4, :a3,  :cs4, :fs4],
-  [:d5,  :a4,  :fs4, :d4,  :a3,  :fs3, :a3,  :d4 ],
-  [:b5,  :fs5, :ds5, :b4,  :fs4, :ds4, :fs4, :b4 ],
-  [:cs5, :gs4, :f4,  :cs4, :gs3, :f3,  :gs3, :cs4],
+live_loop :acid, sync: :conductor do
+  t = tick
+  stop if t >= SONG_END
+  sec = (t / 2) % 4
+  if sec == 2
+    sleep 32
+  else
+    cutoff_v = case sec
+               when 0 then 80
+               when 1 then 95
+               when 3 then 115
+               end
+    res_v = sec == 3 ? 0.92 : 0.85
+    amp_v = sec == 3 ? 1.4  : 1.0
+    with_fx :distortion, distort: sec == 3 ? 0.55 : 0.35 do
+      use_synth :tb303
+      use_synth_defaults attack: 0, sustain: 0.12, release: 0.04, wave: 0
+      2.times do
+        ACID_ROOTS.zip(ACID_FIFTHS).each do |root, fifth|
+          play_acid(root, fifth, cutoff_v, res_v, amp_v)
+        end
+      end
+    end
+  end
+end
+
+# ── Dub chord stabs (sec 1, 3) ────────────────────────────────────────────────
+# F#m7, Dmaj7, Bm7, C#7 voicings — short, snappy, on the "&" of every beat.
+STAB_CHORDS = [
+  [:fs4, :a4,  :cs5, :e5 ],   # F#m7
+  [:d4,  :fs4, :a4,  :cs5],   # Dmaj7
+  [:b3,  :d4,  :fs4, :a4 ],   # Bm7
+  [:cs4, :f4,  :gs4, :b4 ],   # C#7
 ]
 
 live_loop :stabs, sync: :conductor do
   t = tick
   stop if t >= SONG_END
   sec = (t / 2) % 4
-  if sec == 1
-    with_fx :bitcrusher, bits: 6, sample_rate: 0.4 do
-      use_synth :pulse
-      use_synth_defaults attack: 0, sustain: 0.08, release: 0.06,
-                         amp: 0.55, pulse_width: 0.15, cutoff: 100
-      2.times do
-        STABS_DOWN.each do |pattern|
-          pattern.each { |n| play n; sleep 0.25 }
-          sleep 2
+  if [1, 3].include?(sec)
+    with_fx :reverb, mix: 0.4, room: 0.7 do
+      with_fx :hpf, cutoff: 70 do
+        use_synth :pulse
+        use_synth_defaults attack: 0, sustain: 0.05, release: 0.15,
+                           pulse_width: 0.3, cutoff: 100,
+                           amp: sec == 3 ? 0.65 : 0.5
+        2.times do
+          STAB_CHORDS.each do |chord|
+            # 4 beats per chord — stabs on the "&" of 1, 2, 3, 4
+            4.times do
+              sleep 0.5
+              play chord
+              sleep 0.5
+            end
+          end
         end
       end
     end
@@ -88,117 +109,57 @@ live_loop :stabs, sync: :conductor do
   end
 end
 
-# ── Chip bass ─────────────────────────────────────────────────────────────────
-BASS_ROOTS  = [:fs2, :d2,  :b1,  :cs2]
-BASS_FIFTHS = [:cs3, :a2,  :fs2, :gs2]
-
-live_loop :chip_bass, sync: :conductor do
-  t = tick
-  stop if t >= SONG_END
-  sec = (t / 2) % 4
-  with_fx :distortion, distort: 0.6 do
-    use_synth :chipbass
-    case sec
-    when 0, 3
-      use_synth_defaults attack: 0, sustain: 0.1, release: 0.04, amp: 1.7
-      2.times do
-        BASS_ROOTS.zip(BASS_FIFTHS).each do |root, fifth|
-          8.times do
-            play root;  sleep 0.25
-            play fifth; sleep 0.25
-          end
-        end
-      end
-    when 1
-      use_synth_defaults attack: 0, sustain: 0.12, release: 0.04, amp: 2.2
-      2.times do
-        BASS_ROOTS.zip(BASS_FIFTHS).each do |root, fifth|
-          4.times do
-            play root;  sleep 0.5
-            play root;  sleep 0.25
-            play fifth; sleep 0.25
-          end
-        end
-      end
-    when 2
-      use_synth_defaults attack: 0, sustain: 3.0, release: 0.5, amp: 2.5
-      2.times do
-        BASS_ROOTS.each { |r| play r; sleep 4 }
-      end
-    end
-  end
-end
-
-# ── Kick ──────────────────────────────────────────────────────────────────────
+# ── Kick — 4-on-floor (drops in break) ────────────────────────────────────────
 live_loop :kick, sync: :conductor do
   t = tick
   stop if t >= SONG_END
   sec = (t / 2) % 4
-  case sec
-  when 0, 3
+  if sec == 2
+    # break: only beat 1 of each bar, soft
+    8.times do
+      sample :bd_haus, amp: 1.6
+      sleep 4
+    end
+  else
     32.times do
-      sample :bd_haus, amp: 2.0; sleep 1
-    end
-  when 1
-    8.times do
-      sample :bd_haus, amp: 2.2; sleep 0.25
-      sample :bd_haus, amp: 1.8; sleep 0.75
+      sample :bd_haus, amp: sec == 3 ? 2.4 : 2.0
       sleep 1
-      sample :bd_haus, amp: 2.2; sleep 0.25
-      sample :bd_haus, amp: 1.8; sleep 0.75
-      sleep 1
-    end
-  when 2
-    8.times do
-      sample :bd_haus, amp: 2.5; sleep 4
     end
   end
 end
 
-# ── Snare ─────────────────────────────────────────────────────────────────────
-live_loop :snare, sync: :conductor do
+# ── Clap on 2 & 4 (sec 1, 3) ──────────────────────────────────────────────────
+live_loop :clap, sync: :conductor do
   t = tick
   stop if t >= SONG_END
   sec = (t / 2) % 4
-  if sec == 2
-    8.times do
-      sleep 2
-      sample :sn_dolf, amp: 2.8, rate: 0.80
-      sleep 2
-    end
-  elsif [0, 3].include?(sec)
-    8.times do
+  if [1, 3].include?(sec)
+    16.times do
       sleep 1
-      sample :sn_dolf, amp: 1.8, rate: 1.05
-      sleep 2
-      sample :sn_dolf, amp: 2.0, rate: 1.0
+      sample :sn_dolf, amp: sec == 3 ? 1.9 : 1.6, rate: 0.95
       sleep 1
     end
   else
-    8.times do
-      sleep 1
-      sample :sn_dolf, amp: 2.4, rate: 0.88
-      sleep 2
-      sample :sn_dolf, amp: 2.6, rate: 0.85
-      sleep 1
-    end
+    sleep 32
   end
 end
 
-# ── Hats ──────────────────────────────────────────────────────────────────────
+# ── Hats — open offbeat (sec 0,1) / driving 16ths (sec 3) ─────────────────────
 live_loop :hats, sync: :conductor do
   t = tick
   stop if t >= SONG_END
   sec = (t / 2) % 4
   case sec
-  when 0, 3
-    64.times do |i|
-      sample :hat_snap, amp: 1.0, rate: 1.2 if i.odd?
+  when 0, 1
+    # open hat on the "&" of every beat — house feel
+    32.times do
+      sleep 0.5
+      sample :drum_cymbal_pedal, amp: 0.5, rate: 1.4
       sleep 0.5
     end
-  when 1
+  when 3
     128.times do |i|
-      sample :hat_snap, amp: (i % 4 == 0 ? 0.9 : 0.45), rate: 1.4
+      sample :hat_snap, amp: (i % 4 == 0 ? 0.9 : 0.45), rate: 1.5
       sleep 0.25
     end
   when 2
@@ -206,57 +167,27 @@ live_loop :hats, sync: :conductor do
   end
 end
 
-# ── Crash (breakdown only) ────────────────────────────────────────────────────
-live_loop :crash, sync: :conductor do
-  t = tick
-  stop if t >= SONG_END
-  sec = (t / 2) % 4
-  if sec == 2
-    8.times do
-      sample :drum_cymbal_open, amp: 0.8, finish: 0.4
-      sleep 4
-    end
-  else
-    sleep 32
-  end
-end
-
-# ── Texture ───────────────────────────────────────────────────────────────────
+# ── Pad / texture — break swell + filter riser ────────────────────────────────
 live_loop :texture, sync: :conductor do
   t = tick
   stop if t >= SONG_END
   sec = (t / 2) % 4
   case sec
-  when 1
-    8.times do
-      sample GLITCH, amp: 0.4
-      sleep 4
-    end
   when 2
-    sample BUZZ,  amp: 0.3,  attack: 3.0, release: 5.0
-    sample NOISE, amp: 0.25, attack: 4.0, release: 6.0
-    64.times do
-      sample GLITCH,            amp: rrand(0.7, 1.1), rate: rrand(0.6, 1.5) if one_in(2)
-      sample GPERCS.choose,     amp: rrand(0.6, 1.0), rate: rrand(0.5, 1.6) if one_in(3)
-      sleep 0.5
+    sample ASWELL, amp: 0.4, attack: 4.0, release: 6.0
+    sample NOISE,  amp: 0.25, rate: 0.6, attack: 8.0, release: 8.0
+    # filter riser climbing toward sec 3
+    use_synth :saw
+    with_fx :reverb, mix: 0.5 do
+      play :fs3, attack: 24, sustain: 4, release: 4,
+                 cutoff_slide: 28, cutoff: 60, amp: 0.4
+      control note: :fs3, cutoff: 125
     end
+    sleep 32
   when 3
-    if t == 7
-      16.times do
-        sample GLITCH, amp: 0.45 if one_in(4)
-        sleep 1
-      end
-      16.times do
-        sample GLITCH,        amp: 0.55 if one_in(2)
-        sample GPERCS.choose, amp: 0.45, rate: rrand(0.7, 1.4) if one_in(3)
-        sleep 1
-      end
-    else
-      32.times do
-        sample GLITCH, amp: 0.38 if one_in(6)
-        sleep 1
-      end
-    end
+    # peak: occasional noise crash to mark bar 1 of each phrase
+    sample NOISE, amp: 0.3, attack: 0.05, release: 1.5, finish: 0.15
+    sleep 32
   else
     sleep 32
   end
