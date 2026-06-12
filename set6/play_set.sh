@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="/Users/logan/Projects/chiptune/set6"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SP4="$DIR/sp4"
 
 GAP=0
