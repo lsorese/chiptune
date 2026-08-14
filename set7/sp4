@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+# sp4 — Sonic Pi 4.x CLI wrapper (pure Ruby, no gems)
+#
+# Talks OSC to the running Sonic Pi spider-server over UDP. Requires only a
+# stock ruby; nothing needs to be gem-installed.
+#
+# Usage:
+#   sp4 "<code>"              — run code in Sonic Pi
+#   sp4 stop                  — stop all jobs
+#   sp4 start-recording       — begin internal recording
+#   sp4 stop-recording        — stop internal recording
+#   sp4 save-recording <path> — save recording to path
+
+require "socket"
+
+# ── Find the running spider-server: its port and auth token ───────────────────
+line = `ps ax -o args=`.lines.find { |l| l.include?("spider-server.rb") && l.include?(" -u ") }
+abort "Error: Sonic Pi is not running" if line.nil?
+
+fields = line.split
+port   = fields[fields.index("-u") + 1].to_i
+token  = fields.last.to_i
+
+abort "Error: could not read Sonic Pi's port from the process list" if port.zero?
+
+# ── Minimal OSC 1.0 encoder ───────────────────────────────────────────────────
+def osc_pad(str)
+  s = str + "\0"
+  s + "\0" * ((4 - (s.bytesize % 4)) % 4)
+end
+
+def osc_message(path, args)
+  tags = "," + args.map { |a| a.is_a?(Integer) ? "i" : "s" }.join
+  body = args.map { |a| a.is_a?(Integer) ? [a].pack("l>") : osc_pad(a) }.join
+  osc_pad(path) + osc_pad(tags) + body
+end
+
+def osc_send(port, path, args)
+  sock = UDPSocket.new
+  sock.send(osc_message(path, args), 0, "127.0.0.1", port)
+  sock.close
+end
+
+# ── Dispatch ──────────────────────────────────────────────────────────────────
+case ARGV[0]
+when nil
+  abort "Usage: sp4 \"<code>\" | stop | start-recording | stop-recording | save-recording <path>"
+when "stop"
+  osc_send port, "/stop-all-jobs", [token]
+when "start-recording"
+  osc_send port, "/start-recording", [token]
+when "stop-recording"
+  osc_send port, "/stop-recording", [token]
+when "save-recording"
+  abort "Usage: sp4 save-recording <path>" if ARGV[1].nil?
+  osc_send port, "/save-recording", [token, ARGV[1]]
+else
+  osc_send port, "/run-code", [token, ARGV[0]]
+end
